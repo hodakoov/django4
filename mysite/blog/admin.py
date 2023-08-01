@@ -4,11 +4,24 @@ from .models import Post
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ['title', 'slug', 'author', 'publish', 'status'] # отображение в странице списка постов
-    list_filter = ['status', 'created', 'publish', 'author'] # боковая панель с фильтрацией
-    search_fields = ['title', 'body'] # Список поле по которым можно выполнять поиск в строке поиска
-    prepopulated_fields = {'slug': ('title',)} # теперь slug добавляется автоматически копируя текст с title
-    raw_id_fields = ['author'] # поле author отображается поисковым виджетом, а не выпадающим списком
-    date_hierarchy = 'publish' # ниже строки поиска отображаются навигационные ссылки для навигации по датам
-    ordering = ['status', 'publish'] # сортировка на странице списка постов
+    # Отображение снаружи
+    list_display = ['title', 'slug', 'author', 'publish', 'status']  # отображение в странице списка постов
+    list_editable = ['author', 'status'] # редактирование на странице списка изменений.
+
+    # Отображение внутри
+    radio_fields = {
+        "status": admin.HORIZONTAL}  # отображение становиться в виде radiо (точки выбора). Можно вертикально
+    # raw_id_fields = ['author'] # поле author отображается поисковым виджетом, а не выпадающим списком
+
+    # Автоматическое создание slug в соответствии с названием title
+    prepopulated_fields = {'slug': ('title',)}
+
+    # Фильтрация и поиск и навигация
+    list_filter = ['status', 'created', 'publish', 'author']  # боковая панель с фильтрацией
+    search_fields = ['title', 'body']  # Список поле по которым можно выполнять поиск в строке поиска
+    date_hierarchy = 'publish'  # ниже строки поиска отображаются навигационные ссылки для навигации по датам
+
+    # Сортировка
+    ordering = ['status', 'publish']  # сортировка на странице списка постов
+
 
