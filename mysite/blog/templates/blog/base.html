@@ -1,6 +1,7 @@
+{% load blog_tags %}
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es-ES">
 <head>
     <title>{% block title %}{% endblock %}</title>
     <link href="{% static "css/blog.css" %}" rel="stylesheet">
@@ -13,6 +14,7 @@
 <div id="sidebar">
     <a href="{% url 'blog:post_list' %}"><h2>My blog</h2></a>
     <p>This is my blog.</p>
+    I've written {% total_posts %} posts so far.
 </div>
 </body>
 </html>
