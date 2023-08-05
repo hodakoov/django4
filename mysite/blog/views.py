@@ -7,6 +7,7 @@ from .forms import EmailPostForm, CommentForm
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from taggit.models import Tag
+from django.db.models import Count
 
 
 def post_share(request, post_id):
@@ -43,12 +44,15 @@ class PostListView(ListView):
 
 def post_list(request, tag_slug=None):
     post_list = Post.published.all()
+
+    # Отображение списка всех постов, помеченных конкретным тегом.
     tag = None
     if tag_slug:
         tag = get_object_or_404(Tag, slug=tag_slug)
         post_list = post_list.filter(tags__in=[tag])
-    # Постраничная разбивка с 3 постами на страницу
-    paginator = Paginator(post_list, 3)  # Передаем посты и сколько постов
+
+    # Постраничная разбивка с 5 постами на страницу
+    paginator = Paginator(post_list, 5)  # Передаем посты и сколько постов
     page_number = request.GET.get('page', default=1)  # извлекаем параметр номера страницы, если нет по умолчанию 1
     try:
         posts = paginator.page(page_number)
@@ -56,17 +60,28 @@ def post_list(request, tag_slug=None):
         posts = paginator.page(1)
     except EmptyPage:  # Если page_number находится вне диапазона, то выдать последнюю страницу
         posts = paginator.page(paginator.num_pages)
+
     return render(request, 'blog/post/list.html', {'posts': posts, 'tag': tag})
 
 
 def post_detail(request, year, month, day, post):
     post = get_object_or_404(Post, status=Post.Status.PUBLISHED,
                              slug=post, publish__year=year, publish__month=month, publish__day=day)
+
     # Список активных комментариев к этому посту
     comments = post.comments.filter(active=True)
+
     # Форма для комментирования пользователями
     form = CommentForm()
-    return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'form': form})
+
+    # Список схожих постов
+    post_tags_ids = post.tags.values_list('id', flat=True) # извлекается Python’овский список идентификаторов тегов текущего поста
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id) # берутся все посты, содержащие любой из этих тегов, исключается текущий пост
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+    return render(request, 'blog/post/detail.html', {'post': post,
+                                                     'comments': comments,
+                                                     'form': form,
+                                                     'similar_posts': similar_posts})
 
 
 @require_POST  # декоратор require_POST, чтобы разрешить запросы методом POST только для этого представления.

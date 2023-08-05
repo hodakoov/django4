@@ -29,7 +29,7 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)  # автоматическое добавление даты при создании
     updated = models.DateTimeField(auto_now=True)  # обновление даты автоматически при сохранении
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.DRAFT)  # статус постов
-    tags = TaggableManager()
+    tags = TaggableManager() # Модель Tag используется для хранения тегов. Она содержит поля name и slug.
 
 
     # Первый объявленный в модели менеджер становится менеджером, который используется по умолчанию.
