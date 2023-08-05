@@ -22,7 +22,7 @@ class PostAdmin(admin.ModelAdmin):
     date_hierarchy = 'publish'  # ниже строки поиска отображаются навигационные ссылки для навигации по датам
 
     # Сортировка
-    ordering = ['status', 'publish']  # сортировка на странице списка постов
+    ordering = ['-status', 'publish']  # сортировка на странице списка постов
 
 
 @admin.register(Comment)
