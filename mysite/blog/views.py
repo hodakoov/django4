@@ -6,6 +6,7 @@ from django.views.generic import ListView
 from .forms import EmailPostForm, CommentForm
 from django.conf import settings
 from django.views.decorators.http import require_POST
+from taggit.models import Tag
 
 
 def post_share(request, post_id):
@@ -40,9 +41,14 @@ class PostListView(ListView):
     template_name = 'blog/post/list.html'
 
 
-def post_list(request):
+def post_list(request, tag_slug=None):
     post_list = Post.published.all()
-    paginator = Paginator(post_list, 3)  # пагинация по 3 поста на страницу. Передаем посты и сколько постов
+    tag = None
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        post_list = post_list.filter(tags__in=[tag])
+    # Постраничная разбивка с 3 постами на страницу
+    paginator = Paginator(post_list, 3)  # Передаем посты и сколько постов
     page_number = request.GET.get('page', default=1)  # извлекаем параметр номера страницы, если нет по умолчанию 1
     try:
         posts = paginator.page(page_number)
@@ -50,7 +56,7 @@ def post_list(request):
         posts = paginator.page(1)
     except EmptyPage:  # Если page_number находится вне диапазона, то выдать последнюю страницу
         posts = paginator.page(paginator.num_pages)
-    return render(request, 'blog/post/list.html', {'posts': posts})
+    return render(request, 'blog/post/list.html', {'posts': posts, 'tag': tag})
 
 
 def post_detail(request, year, month, day, post):
@@ -63,7 +69,7 @@ def post_detail(request, year, month, day, post):
     return render(request, 'blog/post/detail.html', {'post': post, 'comments': comments, 'form': form})
 
 
-@require_POST # декоратор require_POST, чтобы разрешить запросы методом POST только для этого представления.
+@require_POST  # декоратор require_POST, чтобы разрешить запросы методом POST только для этого представления.
 def post_comment(request, post_id):
     post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
     comment = None
@@ -76,4 +82,4 @@ def post_comment(request, post_id):
         comment.post = post
         # Сохранить комментарий в базе данных
         comment.save()
-    return render(request, 'blog/post/comment.html',{'post': post, 'form': form, 'comment': comment})
+    return render(request, 'blog/post/comment.html', {'post': post, 'form': form, 'comment': comment})

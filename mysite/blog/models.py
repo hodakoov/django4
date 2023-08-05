@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
+from taggit.managers import TaggableManager
 
 
 class PublishedManager(models.Manager):
@@ -28,6 +29,8 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)  # автоматическое добавление даты при создании
     updated = models.DateTimeField(auto_now=True)  # обновление даты автоматически при сохранении
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.DRAFT)  # статус постов
+    tags = TaggableManager()
+
 
     # Первый объявленный в модели менеджер становится менеджером, который используется по умолчанию.
     objects = models.Manager()  # менеджер, применяемый по умолчанию
