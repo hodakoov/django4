@@ -1,9 +1,17 @@
 from django import template
 from django.db.models import Count
+from django.utils.safestring import mark_safe
+import markdown
 
 from ..models import Post
 
 register = template.Library()
+
+
+# Создание шаблонного фильтра для поддержки синтаксиса Markdown
+@register.filter(name='markdown')
+def markdown_format(text):
+    return mark_safe(markdown.markdown(text))
 
 
 # Получаем общее число опубликованных в блоге постов
