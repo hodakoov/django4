@@ -111,8 +111,8 @@ def post_search(request):
         form = SearchForm(request.GET)
         if form.is_valid():
             query = form.cleaned_data['query']
-            search_vector = SearchVector('title', 'body')
-            search_query = SearchQuery(query)
+            search_vector = SearchVector('title', 'body', config='russian')
+            search_query = SearchQuery(query, config='russian')
             #  выполняется поиск опубликованных постов с использованием полей title и body
             results = Post.published.annotate(search=search_vector, rank=SearchRank(search_vector, search_query)
                                               ).filter(search=search_query).order_by('-rank')
