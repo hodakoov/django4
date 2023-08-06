@@ -111,9 +111,11 @@ def post_search(request):
         form = SearchForm(request.GET)
         if form.is_valid():
             query = form.cleaned_data['query']
-            search_vector = SearchVector('title', 'body', config='russian')
+            #  Вес 1.0 применяется к вектору поиска title (A), и вес 0.4 – к вектору body (B).
+            # Совпадения с заголовком будут преобладать над совпадениями с содержимым тела поста
+            search_vector = SearchVector('title', config='russian', weight='A') + SearchVector('body', weight='B')
             search_query = SearchQuery(query, config='russian')
             #  выполняется поиск опубликованных постов с использованием полей title и body
             results = Post.published.annotate(search=search_vector, rank=SearchRank(search_vector, search_query)
-                                              ).filter(search=search_query).order_by('-rank')
+                                              ).filter(rank__gte=0.2).order_by('-rank') # Результаты фильтруются, чтобы отображать только те, у которых ранг выше 0.2.
     return render(request, 'blog/post/search.html', {'form': form, 'query': query, 'results': results})
